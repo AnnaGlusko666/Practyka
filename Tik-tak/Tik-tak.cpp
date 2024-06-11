@@ -2,6 +2,7 @@
 #include <fstream>
 #include <ctime>
 #include <cstring>
+#include <iomanip> // Підключаємо iomanip для використання setw
 
 char board[3][3] = { {'1','2','3'}, {'4','5','6'}, {'7','8','9'} };
 char current_marker;
@@ -19,11 +20,11 @@ void log(const std::string& message) {
 }
 
 void drawBoard() {
-    std::cout << " " << board[0][0] << " | " << board[0][1] << " | " << board[0][2] << "\n";
-    std::cout << "---|---|---\n";
-    std::cout << " " << board[1][0] << " | " << board[1][1] << " | " << board[1][2] << "\n";
-    std::cout << "---|---|---\n";
-    std::cout << " " << board[2][0] << " | " << board[2][1] << " | " << board[2][2] << "\n";
+    std::cout << " " << std::setw(1) << board[0][0] << " | " << std::setw(1) << board[0][1] << " | " << std::setw(1) << board[0][2] << "\n";
+    std::cout << " " << std::setw(2) << "---" << "|" << std::setw(1) << "---" << "|" << std::setw(1) << "---" << "\n";
+    std::cout << " " << std::setw(2) << board[1][0] << " | " << std::setw(1) << board[1][1] << " | " << std::setw(1) << board[1][2] << "\n";
+    std::cout << " " << std::setw(2) << "---" << "|" << std::setw(1) << "---" << "|" << std::setw(1) << "---" << "\n";
+    std::cout << " " << std::setw(2) << board[2][0] << " | " << std::setw(1) << board[2][1] << " | " << std::setw(1) << board[2][2] << "\n";
 }
 
 bool placeMarker(int slot) {
@@ -83,8 +84,8 @@ void saveGame() {
     playerFile << current_player << ' ' << current_marker << ' ' << move_count;
     playerFile.close();
 
-    std::cout << "Гра збережена!\n";
-    log("Гра збережена.");
+    std::cout << "Game saved!\n";
+    log("Game saved.");
 }
 
 void loadGame() {
@@ -102,11 +103,11 @@ void loadGame() {
         playerFile >> current_player >> current_marker >> move_count;
         playerFile.close();
 
-        std::cout << "Гра завантажена!\n";
-        log("Гра завантажена.");
+        std::cout << "Game loaded!\n";
+        log("Game loaded.");
     } else {
-        std::cout << "Помилка завантаження гри!\n";
-        log("Помилка завантаження гри.");
+        std::cout << "Error loading game!\n";
+        log("Error loading game.");
     }
 }
 
@@ -118,8 +119,8 @@ void resetBoard() {
 
 void game() {
     logFile.open("game_log.txt", std::ios::app);
-    log("Гра почалася.");
-    std::cout << "Чи хочете ви завантажити збережену гру? (y/n): ";
+    log("Game started.");
+    std::cout << "Do you want to load a saved game? (y/n): ";
     char loadChoice;
     std::cin >> loadChoice;
 
@@ -127,22 +128,22 @@ void game() {
         loadGame();
         int result = winner();
         if (result != 0 || move_count >= 9) {
-            std::cout << "Завантажена гра вже завершена. Розпочніть нову гру.\n";
+            std::cout << "Loaded game is already completed. Start a new game.\n";
             resetBoard();
         }
     } else {
-        std::cout << "Гравець 1, оберіть ваш маркер (X або O): ";
+        std::cout << "Player 1, choose your marker (X or O): ";
         char marker_p1;
         std::cin >> marker_p1;
 
         while (marker_p1 != 'X' && marker_p1 != 'O') {
-            std::cout << "Невірний маркер! Будь ласка, оберіть X або O: ";
+            std::cout << "Invalid marker! Please choose X or O: ";
             std::cin >> marker_p1;
         }
 
         current_player = 1;
         current_marker = marker_p1;
-        log("Гравець 1 обрав маркер " + std::string(1, marker_p1));
+        log("Player 1 chose marker " + std::string(1, marker_p1));
     }
 
     bool play_again = true;
@@ -155,43 +156,43 @@ void game() {
         int player_won = 0;
 
         for (int i = move_count; i < 9; i++) {
-            std::cout << "Гравець " << current_player << ", оберіть слот для вашого маркера (або натисніть 0 для збереження гри): ";
+            std::cout << "Player " << current_player << ", choose a slot for your marker (or press 0 to save the game): ";
             int slot;
             std::cin >> slot;
 
             if (slot == 0) {
                 saveGame();
-                return; // Завершение игры после сохранения
+                return; // End the game after saving
             }
 
             if (slot < 1 || slot > 9) {
-                std::cout << "Невірний слот! Спробуйте ще раз.\n";
-                log("Гравець " + std::to_string(current_player) + " обрав невірний слот " + std::to_string(slot));
+                std::cout << "Invalid slot! Try again.\n";
+                log("Player " + std::to_string(current_player) + " chose an invalid slot " + std::to_string(slot));
                 i--;
                 continue;
             }
             if (!placeMarker(slot)) {
-                std::cout << "Цей слот занят! Спробуйте ще раз.\n";
-                log("Гравець " + std::to_string(current_player) + " спробував зайнятий слот " + std::to_string(slot));
+                std::cout << "This slot is occupied! Try again.\n";
+                log("Player " + std::to_string(current_player) + " tried an occupied slot " + std::to_string(slot));
                 i--;
                 continue;
             }
 
             move_count++;
-            log("Гравець " + std::to_string(current_player) + " поставив маркер в слот " + std::to_string(slot));
+            log("Player " + std::to_string(current_player) + " placed a marker in slot " + std::to_string(slot));
             drawBoard();
             player_won = winner();
 
             if (player_won == 1) {
                 player1_wins++;
-                std::cout << "Гравець 1 переміг за " << move_count << " ходів!\n";
-                log("Гравець 1 переміг!");
+                std::cout << "Player 1 won in " << move_count << " moves!\n";
+                log("Player 1 won!");
                 break;
             }
             if (player_won == 2) {
                 player2_wins++;
-                std::cout << "Гравець 2 переміг за " << move_count << " ходів!\n";
-                log("Гравець 2 переміг!");
+                std::cout << "Player 2 won in " << move_count << " moves!\n";
+                log("Player 2 won!");
                 break;
             }
 
@@ -199,14 +200,14 @@ void game() {
         }
 
         if (player_won == 0 && move_count >= 9) {
-            std::cout << "Нічия!\n";
-            log("Гра закінчилася нічиєю.");
+            std::cout << "Draw!\n";
+            log("Game ended in a draw.");
         }
 
-        std::cout << "Гравець 1 перемог: " << player1_wins << "\n";
-        std::cout << "Гравець 2 перемог: " << player2_wins << "\n";
+        std::cout << "Player 1 wins: " << player1_wins << "\n";
+        std::cout << "Player 2 wins: " << player2_wins << "\n";
 
-        std::cout << "Чи хочете ви зіграти ще раз? (y/n): ";
+        std::cout << "Do you want to play again? (y/n): ";
         char playAgainChoice;
         std::cin >> playAgainChoice;
         if (playAgainChoice != 'y') {
