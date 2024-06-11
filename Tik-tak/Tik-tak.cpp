@@ -80,7 +80,7 @@ void saveGame() {
     }
     boardFile.close();
 
-    playerFile << current_player << ' ' << current_marker;
+    playerFile << current_player << ' ' << current_marker << ' ' << move_count;
     playerFile.close();
 
     std::cout << "Гра збережена!\n";
@@ -99,7 +99,7 @@ void loadGame() {
         }
         boardFile.close();
 
-        playerFile >> current_player >> current_marker;
+        playerFile >> current_player >> current_marker >> move_count;
         playerFile.close();
 
         std::cout << "Гра завантажена!\n";
@@ -125,7 +125,8 @@ void game() {
 
     if (loadChoice == 'y') {
         loadGame();
-        if (winner() != 0) {
+        int result = winner();
+        if (result != 0 || move_count >= 9) {
             std::cout << "Завантажена гра вже завершена. Розпочніть нову гру.\n";
             resetBoard();
         }
@@ -146,12 +147,14 @@ void game() {
 
     bool play_again = true;
     while (play_again) {
-        resetBoard();
+        if (loadChoice != 'y' || move_count == 0) {
+            resetBoard();
+        }
         drawBoard();
 
         int player_won = 0;
 
-        for (int i = 0; i < 9; i++) {
+        for (int i = move_count; i < 9; i++) {
             std::cout << "Гравець " << current_player << ", оберіть слот для вашого маркера (або натисніть 0 для збереження гри): ";
             int slot;
             std::cin >> slot;
@@ -195,7 +198,7 @@ void game() {
             swapPlayerAndMarker();
         }
 
-        if (player_won == 0) {
+        if (player_won == 0 && move_count >= 9) {
             std::cout << "Нічия!\n";
             log("Гра закінчилася нічиєю.");
         }
@@ -208,6 +211,9 @@ void game() {
         std::cin >> playAgainChoice;
         if (playAgainChoice != 'y') {
             play_again = false;
+        } else {
+            resetBoard();
+            move_count = 0; // Reset move_count when starting a new game
         }
     }
 
