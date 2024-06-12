@@ -3,6 +3,9 @@
 #include <ctime>
 #include <cstring>
 #include <iomanip>
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 char board[3][3] = { {'1','2','3'}, {'4','5','6'}, {'7','8','9'} };
 char current_marker;
@@ -71,37 +74,42 @@ void swapPlayerAndMarker() {
 }
 
 void saveGame() {
-    std::ofstream boardFile("board.txt");
-    std::ofstream playerFile("player.txt");
+    json game_state;
+    game_state["board"] = { { board[0][0], board[0][1], board[0][2] },
+                            { board[1][0], board[1][1], board[1][2] },
+                            { board[2][0], board[2][1], board[2][2] } };
+    game_state["current_marker"] = current_marker;
+    game_state["current_player"] = current_player;
+    game_state["move_count"] = move_count;
+    game_state["player1_wins"] = player1_wins;
+    game_state["player2_wins"] = player2_wins;
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            boardFile << board[i][j];
-        }
-    }
-    boardFile.close();
-
-    playerFile << current_player << ' ' << current_marker << ' ' << move_count;
-    playerFile.close();
+    std::ofstream outFile("game_state.json");
+    outFile << game_state.dump(4);
+    outFile.close();
 
     std::cout << "Game saved!\n";
     log("Game saved.");
 }
 
 void loadGame() {
-    std::ifstream boardFile("board.txt");
-    std::ifstream playerFile("player.txt");
+    std::ifstream inFile("game_state.json");
 
-    if (boardFile && playerFile) {
+    if (inFile) {
+        json game_state;
+        inFile >> game_state;
+        inFile.close();
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                boardFile >> board[i][j];
+                board[i][j] = game_state["board"][i][j].get<char>();
             }
         }
-        boardFile.close();
-
-        playerFile >> current_player >> current_marker >> move_count;
-        playerFile.close();
+        current_marker = game_state["current_marker"].get<char>();
+        current_player = game_state["current_player"];
+        move_count = game_state["move_count"];
+        player1_wins = game_state["player1_wins"];
+        player2_wins = game_state["player2_wins"];
 
         std::cout << "Game loaded!\n";
         log("Game loaded.");
@@ -123,7 +131,6 @@ void game() {
     std::cout << "Do you want to load a saved game? (y/n): ";
     char loadChoice;
     std::cin >> loadChoice;
-
     if (loadChoice == 'y') {
         loadGame();
         int result = winner();
