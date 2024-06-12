@@ -2,7 +2,7 @@
 #include <fstream>
 #include <ctime>
 #include <cstring>
-#include <iomanip> // Підключаємо iomanip для використання setw
+#include <iomanip>
 
 char board[3][3] = { {'1','2','3'}, {'4','5','6'}, {'7','8','9'} };
 char current_marker;
@@ -16,7 +16,7 @@ void log(const std::string& message) {
     std::time_t now = std::time(nullptr);
     char* dt = std::ctime(&now);
     dt[std::strlen(dt) - 1] = '\0';
-    logFile << "[" << dt << "] " << message << "\n";
+    logFile << "\"" << dt << "\",\"" << message << "\"\n";
 }
 
 void drawBoard() {
@@ -118,7 +118,7 @@ void resetBoard() {
 }
 
 void game() {
-    logFile.open("game_log.txt", std::ios::app);
+    logFile.open("game_log.csv", std::ios::app);
     log("Game started.");
     std::cout << "Do you want to load a saved game? (y/n): ";
     char loadChoice;
@@ -214,7 +214,7 @@ void game() {
             play_again = false;
         } else {
             resetBoard();
-            move_count = 0; // Reset move_count when starting a new game
+            move_count = 0;
         }
     }
 
